@@ -1387,7 +1387,9 @@ namespace Akka.Actor
     public class static PipeToSupport
     {
         public static System.Threading.Tasks.Task PipeTo<T>(this System.Threading.Tasks.Task<T> taskToPipe, Akka.Actor.ICanTell recipient, Akka.Actor.IActorRef sender = null, System.Func<T, object> success = null, System.Func<System.Exception, object> failure = null) { }
+        public static System.Threading.Tasks.Task PipeTo<T>(this System.Threading.Tasks.Task<T> taskToPipe, Akka.Actor.ICanTell recipient, bool useConfigureAwait, Akka.Actor.IActorRef sender = null, System.Func<T, object> success = null, System.Func<System.Exception, object> failure = null) { }
         public static System.Threading.Tasks.Task PipeTo(this System.Threading.Tasks.Task taskToPipe, Akka.Actor.ICanTell recipient, Akka.Actor.IActorRef sender = null, System.Func<object> success = null, System.Func<System.Exception, object> failure = null) { }
+        public static System.Threading.Tasks.Task PipeTo(this System.Threading.Tasks.Task taskToPipe, Akka.Actor.ICanTell recipient, bool useConfigureAwait, Akka.Actor.IActorRef sender = null, System.Func<object> success = null, System.Func<System.Exception, object> failure = null) { }
     }
     public sealed class PoisonPill : Akka.Actor.IAutoReceivedMessage, Akka.Actor.IPossiblyHarmful, Akka.Event.IDeadLetterSuppression
     {
@@ -2509,6 +2511,22 @@ namespace Akka.Dispatch
         public System.TimeSpan PushTimeout { get; }
         public override Akka.Dispatch.MessageQueues.IMessageQueue Create(Akka.Actor.IActorRef owner, Akka.Actor.ActorSystem system) { }
     }
+    public sealed class ChannelTaskScheduler : Akka.Actor.IExtension, System.IDisposable
+    {
+        public ChannelTaskScheduler(Akka.Actor.ExtendedActorSystem system) { }
+        public System.Threading.Tasks.TaskScheduler High { get; }
+        public System.Threading.Tasks.TaskScheduler Idle { get; }
+        public System.Threading.Tasks.TaskScheduler Low { get; }
+        public System.Threading.Tasks.TaskScheduler Normal { get; }
+        public void Dispose() { }
+        public static Akka.Dispatch.ChannelTaskScheduler Get(Akka.Actor.ActorSystem system) { }
+        public System.Threading.Tasks.TaskScheduler GetScheduler(Akka.Dispatch.TaskSchedulerPriority priority) { }
+    }
+    public sealed class ChannelTaskSchedulerProvider : Akka.Actor.ExtensionIdProvider<Akka.Dispatch.ChannelTaskScheduler>
+    {
+        public ChannelTaskSchedulerProvider() { }
+        public override Akka.Dispatch.ChannelTaskScheduler CreateExtension(Akka.Actor.ExtendedActorSystem system) { }
+    }
     public sealed class CurrentSynchronizationContextDispatcher : Akka.Dispatch.Dispatcher
     {
         public CurrentSynchronizationContextDispatcher(Akka.Dispatch.MessageDispatcherConfigurator configurator, string id, int throughput, System.Nullable<long> throughputDeadlineTime, Akka.Dispatch.ExecutorServiceFactory executorServiceFactory, System.TimeSpan shutdownTimeout) { }
@@ -2676,6 +2694,18 @@ namespace Akka.Dispatch
     {
         public RejectedExecutionException(string message = null, System.Exception inner = null) { }
         protected RejectedExecutionException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) { }
+    }
+    public enum TaskSchedulerPriority
+    {
+        None = 0,
+        Idle = 4,
+        Background = 4,
+        Low = 5,
+        BelowNormal = 6,
+        Normal = 8,
+        AboveNormal = 10,
+        High = 13,
+        Realtime = 24,
     }
     public class ThreadPoolConfig
     {
@@ -3014,6 +3044,7 @@ namespace Akka.Event
     public class EventStream : Akka.Event.LoggingBus
     {
         public EventStream(bool debug) { }
+        [System.ObsoleteAttribute("Should be removed in 1.5")]
         public bool InitUnsubscriber(Akka.Actor.IActorRef unsubscriber, Akka.Actor.ActorSystem system) { }
         public void StartUnsubscriber(Akka.Actor.Internal.ActorSystemImpl system) { }
         public override bool Subscribe(Akka.Actor.IActorRef subscriber, System.Type channel) { }
@@ -3232,8 +3263,17 @@ namespace Akka.IO.Buffers
         public BufferPoolAllocationException(string message) { }
         protected BufferPoolAllocationException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) { }
     }
+    public class BufferPoolInfo
+    {
+        public BufferPoolInfo(System.Type type, long totalSize, long free, long used) { }
+        public long Free { get; }
+        public long TotalSize { get; }
+        public System.Type Type { get; }
+        public long Used { get; }
+    }
     public interface IBufferPool
     {
+        Akka.IO.Buffers.BufferPoolInfo Diagnostics();
         void Release(System.ArraySegment<byte> buf);
         void Release(System.Collections.Generic.IEnumerable<System.ArraySegment<byte>> buf);
         System.ArraySegment<byte> Rent();
@@ -3354,6 +3394,7 @@ namespace Akka.IO
     }
     public interface ISocketEventArgsPool
     {
+        Akka.IO.Buffers.BufferPoolInfo BufferPoolInfo { get; }
         System.Net.Sockets.SocketAsyncEventArgs Acquire(Akka.Actor.IActorRef actor);
         void Release(System.Net.Sockets.SocketAsyncEventArgs e);
     }
@@ -3371,7 +3412,10 @@ namespace Akka.IO
         public class DatagramChannelCreator : Akka.IO.Inet.SocketOption
         {
             public DatagramChannelCreator() { }
+            [System.ObsoleteAttribute("Please use the method with AddressFamily parameter. Using this method will always" +
+                " return an IPv6 bound UDP endpoint.")]
             public virtual System.Net.Sockets.Socket Create() { }
+            public virtual System.Net.Sockets.Socket Create(System.Net.Sockets.AddressFamily addressFamily) { }
         }
         public class static SO
         {
@@ -3873,14 +3917,12 @@ namespace Akka.IO
     {
         public UdpConnectedExt(Akka.Actor.ExtendedActorSystem system) { }
         public UdpConnectedExt(Akka.Actor.ExtendedActorSystem system, Akka.IO.UdpSettings settings) { }
-        public Akka.IO.Buffers.IBufferPool BufferPool { get; }
         public override Akka.Actor.IActorRef Manager { get; }
     }
     public class UdpExt : Akka.IO.IOExtension
     {
         public UdpExt(Akka.Actor.ExtendedActorSystem system) { }
         public UdpExt(Akka.Actor.ExtendedActorSystem system, Akka.IO.UdpSettings settings) { }
-        public Akka.IO.Buffers.IBufferPool BufferPool { get; }
         public override Akka.Actor.IActorRef Manager { get; }
     }
     public class static UdpExtensions
@@ -3889,14 +3931,15 @@ namespace Akka.IO
     }
     public class UdpSettings
     {
+        [System.ObsoleteAttribute("Please the constructor without directBufferSize and maxDirectBufferPoolSize param" +
+            "eter")]
         public UdpSettings(string bufferPoolConfigPath, bool traceLogging, int initialSocketAsyncEventArgs, int directBufferSize, int maxDirectBufferPoolSize, int batchReceiveLimit, string managementDispatcher, string fileIoDispatcher) { }
+        public UdpSettings(string bufferPoolConfigPath, bool traceLogging, int initialSocketAsyncEventArgs, int batchReceiveLimit, string managementDispatcher, string fileIoDispatcher) { }
         public int BatchReceiveLimit { get; }
         public string BufferPoolConfigPath { get; }
-        public int DirectBufferSize { get; }
         public string FileIODispatcher { get; }
         public int InitialSocketAsyncEventArgs { get; }
         public string ManagementDispatcher { get; }
-        public int MaxDirectBufferPoolSize { get; }
         public bool TraceLogging { get; }
         public static Akka.IO.UdpSettings Create(Akka.Actor.ActorSystem system) { }
         public static Akka.IO.UdpSettings Create(Akka.Configuration.Config config) { }
@@ -3983,6 +4026,7 @@ namespace Akka.Pattern
     {
         public CircuitBreaker(Akka.Actor.IScheduler scheduler, int maxFailures, System.TimeSpan callTimeout, System.TimeSpan resetTimeout) { }
         public CircuitBreaker(Akka.Actor.IScheduler scheduler, int maxFailures, System.TimeSpan callTimeout, System.TimeSpan resetTimeout, System.TimeSpan maxResetTimeout, double exponentialBackoffFactor) { }
+        public CircuitBreaker(Akka.Actor.IScheduler scheduler, int maxFailures, System.TimeSpan callTimeout, System.TimeSpan resetTimeout, System.TimeSpan maxResetTimeout, double exponentialBackoffFactor, double randomFactor) { }
         public System.TimeSpan CallTimeout { get; }
         public long CurrentFailureCount { get; }
         public double ExponentialBackoffFactor { get; }
@@ -3992,6 +4036,7 @@ namespace Akka.Pattern
         public System.Exception LastCaughtException { get; }
         public int MaxFailures { get; }
         public System.TimeSpan MaxResetTimeout { get; }
+        public double RandomFactor { get; }
         public System.TimeSpan ResetTimeout { get; }
         public Akka.Actor.IScheduler Scheduler { get; }
         public static Akka.Pattern.CircuitBreaker Create(Akka.Actor.IScheduler scheduler, int maxFailures, System.TimeSpan callTimeout, System.TimeSpan resetTimeout) { }
@@ -4001,8 +4046,11 @@ namespace Akka.Pattern
         public Akka.Pattern.CircuitBreaker OnOpen(System.Action callback) { }
         public void Succeed() { }
         public System.Threading.Tasks.Task<T> WithCircuitBreaker<T>(System.Func<System.Threading.Tasks.Task<T>> body) { }
+        public System.Threading.Tasks.Task<T> WithCircuitBreaker<T, TState>(TState state, System.Func<TState, System.Threading.Tasks.Task<T>> body) { }
         public System.Threading.Tasks.Task WithCircuitBreaker(System.Func<System.Threading.Tasks.Task> body) { }
+        public System.Threading.Tasks.Task WithCircuitBreaker<TState>(TState state, System.Func<TState, System.Threading.Tasks.Task> body) { }
         public Akka.Pattern.CircuitBreaker WithExponentialBackoff(System.TimeSpan maxResetTimeout) { }
+        public Akka.Pattern.CircuitBreaker WithRandomFactor(double randomFactor) { }
         public void WithSyncCircuitBreaker(System.Action body) { }
         public T WithSyncCircuitBreaker<T>(System.Func<T> body) { }
     }
@@ -4717,10 +4765,13 @@ namespace Akka.Serialization
     public sealed class NewtonSoftJsonSerializerSettings
     {
         public static readonly Akka.Serialization.NewtonSoftJsonSerializerSettings Default;
-        public NewtonSoftJsonSerializerSettings(bool encodeTypeNames, bool preserveObjectReferences, System.Collections.Generic.IEnumerable<System.Type> converters) { }
+        public NewtonSoftJsonSerializerSettings(bool encodeTypeNames, bool preserveObjectReferences, System.Collections.Generic.IEnumerable<System.Type> converters, bool usePooledStringBuilder, int stringBuilderMinSize, int stringBuilderMaxSize) { }
         public System.Collections.Generic.IEnumerable<System.Type> Converters { get; }
         public bool EncodeTypeNames { get; }
         public bool PreserveObjectReferences { get; }
+        public int StringBuilderMaxSize { get; }
+        public int StringBuilderMinSize { get; }
+        public bool UsePooledStringBuilder { get; }
         public static Akka.Serialization.NewtonSoftJsonSerializerSettings Create(Akka.Configuration.Config config) { }
     }
     public sealed class NewtonSoftJsonSerializerSetup : Akka.Actor.Setup.Setup

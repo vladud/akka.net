@@ -1,3 +1,192 @@
+#### 1.4.35 March 18 2022 ####
+Akka.NET v1.4.35 is a minor release that contains some bug fixes. Most of the changes have been aimed at improving our web documentation and code cleanup to modernize some of our code.
+
+__Bug fixes__:
+* [Akka: Fixed IActorRef leak inside EventStream](https://github.com/akkadotnet/akka.net/pull/5720)
+* [Akka: Fixed ActorSystemSetup.And forgetting registered types](https://github.com/akkadotnet/akka.net/issues/5728)
+* [Akka.Persistence.Query.Sql: Fixed Query PersistenceIds query bug](https://github.com/akkadotnet/akka.net/pull/5715)
+* [Akka.Streams: Add MapMaterializedValue for SourceWithContext and FlowWithContext](https://github.com/akkadotnet/akka.net/pull/5711)
+
+If you want to see the [full set of changes made in Akka.NET v1.4.35, click here](https://github.com/akkadotnet/akka.net/milestone/66?closed=1).
+
+| COMMITS | LOC+ | LOC- | AUTHOR              |
+|---------|------|------|---------------------|
+| 6       | 2178 | 174  | Aaron Stannard      |
+| 2       | 43   | 33   | Gregorius Soedharmo |
+| 1       | 71   | 19   | Ismael Hamed        |
+| 1       | 1    | 1    | dependabot[bot]     |
+
+#### 1.4.34 March 7 2022 ####
+Akka.NET v1.4.34 is a minor release that contains some bug fixes. Most of the changes have been aimed at improving our web documentation and code cleanup to modernize some of our code. 
+
+__Bug fixes__:
+* [Akka: Added support to pass a state object into CircuitBreaker to reduce allocations](https://github.com/akkadotnet/akka.net/pull/5650)
+* [Akka.DistributedData: ORSet merge operation performance improvement](https://github.com/akkadotnet/akka.net/pull/5686)
+* [Akka.Streams: FlowWithContext generic type parameters have been reordered to make them easier to read](https://github.com/akkadotnet/akka.net/pull/5648)
+
+__Improvements__:
+* [Akka: PipeTo can be configured to retain async threading context](https://github.com/akkadotnet/akka.net/pull/5684)
+
+If you want to see the [full set of changes made in Akka.NET v1.4.34, click here](https://github.com/akkadotnet/akka.net/milestone/65?closed=1).
+
+| COMMITS | LOC+   | LOC-  | AUTHOR              |
+|---------|--------|-------|---------------------|
+| 12      | 1177   | 718   | Ebere Abanonu       |
+| 6       | 192    | 47    | Gregorius Soedharmo |
+| 3       | 255    | 167   | Ismael Hamed        |
+| 1       | 3      | 0     | Aaron Stannard      |
+| 1       | 126    | 10    | Drew                |
+
+#### 1.4.33 February 14 2022 ####
+Akka.NET v1.4.33 is a minor release that contains some bug fixes. Most of the changes have been aimed at improving our web documentation and code cleanup to modernize some of our code. The most important bug fix is the actor Props memory leak when actors are cached inside Akka.Remote. 
+
+* [Akka: Fix memory leak bug within actor Props](https://github.com/akkadotnet/akka.net/pull/5556)
+* [Akka: Fix ChannelExecutor configuration backward compatibility bug](https://github.com/akkadotnet/akka.net/pull/5568)
+* [Akka.TestKit: Fix ExpectAsync detached Task bug](https://github.com/akkadotnet/akka.net/pull/5538)
+* [DistributedPubSub: Fix DeadLetter suppression for topics with no subscribers](https://github.com/akkadotnet/akka.net/pull/5561)
+
+If you want to see the [full set of changes made in Akka.NET v1.4.33, click here](https://github.com/akkadotnet/akka.net/milestone/64?closed=1).
+
+| COMMITS | LOC+ | LOC- | AUTHOR |
+| --- | --- | --- | --- |
+| 63 | 1264 | 1052 | Ebere Abanonu |
+| 9 | 221 | 27 | Brah McDude |
+| 8 | 2537 | 24 | Gregorius Soedharmo |
+| 2 | 4 | 1 | Aaron Stannard |
+| 1 | 2 | 2 | ignobilis |
+
+#### 1.4.32 January 19 2022 ####
+Akka.NET v1.4.32 is a minor release that contains some API improvements. Most of the changes have been aimed at improving our web documentation and code cleanup to modernize some of our code. One big improvement in this version release is the Hyperion serialization update. 
+
+Hyperion 0.12.0 introduces a new deserialization security mechanism to allow users to selectively filter allowed types during deserialization to prevent deserialization of untrusted data described [here](https://cwe.mitre.org/data/definitions/502.html). This new feature is exposed in Akka.NET in HOCON through the new [`akka.actor.serialization-settings.hyperion.allowed-types`](https://github.com/akkadotnet/akka.net/blob/dev/src/contrib/serializers/Akka.Serialization.Hyperion/reference.conf#L33-L35) settings or programmatically through the new `WithTypeFilter` method in the `HyperionSerializerSetup` class.
+
+The simplest way to programmatically describe the type filter is to use the convenience class `TypeFilterBuilder`:
+
+```c#
+var typeFilter = TypeFilterBuilder.Create()
+    .Include<AllowedClassA>()
+    .Include<AllowedClassB>()
+    .Build();
+var setup = HyperionSerializerSetup.Default
+    .WithTypeFilter(typeFilter);
+```
+
+You can also create your own implementation of `ITypeFilter` and pass an instance of it into the `WithTypeFilter` method.
+
+For complete documentation, please read the Hyperion [readme on filtering types for secure deserialization.](https://github.com/akkadotnet/Hyperion#whitelisting-types-on-deserialization)
+
+* [Akka.Streams: Added Flow.LazyInitAsync and Sink.LazyInitSink to replace Sink.LazyInit](https://github.com/akkadotnet/akka.net/pull/5476)
+* [Akka.Serialization.Hyperion: Implement the new ITypeFilter security feature](https://github.com/akkadotnet/akka.net/pull/5510)
+
+If you want to see the [full set of changes made in Akka.NET v1.4.32, click here](https://github.com/akkadotnet/akka.net/milestone/63).
+
+| COMMITS | LOC+ | LOC- | AUTHOR |
+| --- | --- | --- | --- |
+| 11 | 1752 | 511 | Aaron Stannard |
+| 8 | 1433 | 534 | Gregorius Soedharmo |
+| 3 | 754 | 222 | Ismael Hamed |
+| 2 | 3 | 6 | Brah McDude |
+| 2 | 227 | 124 | Ebere Abanonu |
+| 1 | 331 | 331 | Sean Killeen |
+| 1 | 1 | 1 | TangkasOka |
+
+#### 1.4.31 December 20 2021 ####
+Akka.NET v1.4.31 is a minor release that contains some bug fixes.
+
+Akka.NET v1.4.30 contained a breaking change that broke binary compatibility with all Akka.DI plugins.
+Even though those plugins are deprecated that change is not compatible with our SemVer standards 
+and needed to be reverted. We regret the error.
+
+Bug fixes:
+* [Akka: Reverted Props code refactor](https://github.com/akkadotnet/akka.net/pull/5454)
+
+| COMMITS | LOC+ | LOC- | AUTHOR |
+| --- | --- | --- | --- |
+| 1 | 9 | 2 | Gregorius Soedharmo |
+
+#### 1.4.30 December 20 2021 ####
+Akka.NET v1.4.30 is a minor release that contains some enhancements for Akka.Streams and some bug fixes.
+
+New features:
+* [Akka: Added StringBuilder pooling in NewtonsoftJsonSerializer](https://github.com/akkadotnet/akka.net/pull/4929)
+* [Akka.TestKit: Added InverseFishForMessage](https://github.com/akkadotnet/akka.net/pull/5430)
+* [Akka.Streams: Added custom frame sized Flow to Framing](https://github.com/akkadotnet/akka.net/pull/5444)
+* [Akka.Streams: Allow Stream to be consumed as IAsyncEnumerable](https://github.com/akkadotnet/akka.net/pull/4742) 
+
+Bug fixes:
+* [Akka.Cluster: Reverted startup sequence change](https://github.com/akkadotnet/akka.net/pull/5437)
+
+If you want to see the [full set of changes made in Akka.NET v1.4.30, click here](https://github.com/akkadotnet/akka.net/milestone/61).
+
+| COMMITS | LOC+ | LOC- | AUTHOR |
+| --- | --- | --- | --- |
+| 6 | 75 | 101 | Aaron Stannard |
+| 2 | 53 | 5 | Brah McDude |
+| 2 | 493 | 12 | Drew |
+| 1 | 289 | 383 | Andreas Dirnberger |
+| 1 | 220 | 188 | Gregorius Soedharmo |
+| 1 | 173 | 28 | Ismael Hamed |
+
+#### 1.4.29 December 13 2021 ####
+**Maintenance Release for Akka.NET 1.4**
+Akka.NET v1.4.29 is a minor release that contains some enhancements for Akka.Streams and some bug fixes.
+
+New features:
+* [Akka: Added a channel based task scheduler](https://github.com/akkadotnet/akka.net/pull/5403)
+* [Akka.Discovery: Moved Akka.Discovery out of beta](https://github.com/akkadotnet/akka.net/pull/5380)
+
+Documentation:
+* [Akka: Added a serializer ID troubleshooting table](https://github.com/akkadotnet/akka.net/pull/5418)
+* [Akka.Cluster.Sharding: Added a tutorial section](https://github.com/akkadotnet/akka.net/pull/5421)
+
+Bug fixes:
+* [Akka.Cluster: Changed Akka.Cluster startup sequence](https://github.com/akkadotnet/akka.net/pull/5398)
+* [Akka.DistributedData: Fix LightningDB throws MDB_NOTFOUND when data directory already exist](https://github.com/akkadotnet/akka.net/pull/5424)
+* [Akka.IO: Fix memory leak on UDP connector](https://github.com/akkadotnet/akka.net/pull/5404)
+* [Akka.Persistence.Sql: Fix performance issue with highest sequence number query](https://github.com/akkadotnet/akka.net/pull/5420)
+
+If you want to see the [full set of changes made in Akka.NET v1.4.29, click here](https://github.com/akkadotnet/akka.net/milestone/60).
+
+| COMMITS | LOC+ | LOC- | AUTHOR |
+| --- | --- | --- | --- |
+| 7 | 82 | 51 | Aaron Stannard |
+| 6 | 1381 | 483 | Gregorius Soedharmo |
+| 4 | 618 | 85 | Andreas Dirnberger |
+| 1 | 4 | 4 | Luca V |
+| 1 | 1 | 1 | dependabot[bot] |
+
+#### 1.4.28 November 10 2021 ####
+**Maintenance Release for Akka.NET 1.4**
+Akka.NET v1.4.28 is a minor release that contains some enhancements for Akka.Streams and some bug fixes.
+
+**New Akka.Streams Stages**
+Akka.NET v1.4.28 includes two new Akka.Streams stages:
+
+* [`Source.Never`](https://getakka.net/articles/streams/builtinstages.html#never) - a utility stage that never emits any elements, never completes, and never fails. Designed primarily for unit testing.
+* [`Flow.WireTap`](https://getakka.net/articles/streams/builtinstages.html#wiretap) - the `WireTap` stage attaches a given `Sink` to a `Flow` without affecting any of the upstream or downstream elements. This stage is designed for performance monitoring and instrumentation of Akka.Streams graphs.
+
+In addition to these, here are some other changes introduced Akka.NET v1.4.28:
+
+* [Akka.Streams: `Source` that flattens a `Task` source and keeps the materialized value](https://github.com/akkadotnet/akka.net/pull/5338)
+* [Akka.Streams: made `GraphStageLogic.LogSource` virtual and change default `StageLogic` `LogSource`](https://github.com/akkadotnet/akka.net/pull/5360)
+* [Akka.IO: `UdpListener` Responds IPv6 Bound message with IPv4 Bind message](https://github.com/akkadotnet/akka.net/issues/5344)
+* [Akka.MultiNodeTestRunner: now runs on Linux and as a `dotnet test` package](https://github.com/akkadotnet/Akka.MultiNodeTestRunner/releases/tag/1.0.0) - we will keep you posted on this, as we're still working on getting Rider / VS Code / Visual Studio debugger-attached support to work correctly.
+* [Akka.Persistence.Sql.Common: Cancel `DBCommand` after finish reading events by PersistenceId ](https://github.com/akkadotnet/akka.net/pull/5311) - *massive* performance fix for Akka.Persistence with many log entries on SQL-based journals.
+* [Akka.Actor: `DefaultResizer` does not reisize when `ReceiveAsync` is used](https://github.com/akkadotnet/akka.net/issues/5327)
+
+If you want to see the [full set of changes made in Akka.NET v1.4.28, click here](https://github.com/akkadotnet/akka.net/milestone/59).
+
+| COMMITS | LOC+ | LOC- | AUTHOR |
+| --- | --- | --- | --- |
+| 16 | 2707 | 1911 | Sean Killeen |
+| 8 | 1088 | 28 | Ismael Hamed |
+| 6 | 501 | 261 | Gregorius Soedharmo |
+| 5 | 8 | 8 | dependabot[bot] |
+| 4 | 36 | 86 | Aaron Stannard |
+| 1 | 1 | 0 | Jarl Sveinung Flø Rasmussen |
+
+Special thanks for @SeanKilleen for contributing extensive Markdown linting and automated CI checks for that to our documentation! https://github.com/akkadotnet/akka.net/issues/5312
+
 #### 1.4.27 October 11 2021 ####
 **Maintenance Release for Akka.NET 1.4**
 Akka.NET v1.4.27 is a small release that contains some _major_ performance improvements for Akka.Remote.
